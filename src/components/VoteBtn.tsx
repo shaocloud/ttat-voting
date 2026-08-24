@@ -13,6 +13,7 @@ export function VoteBtn({ info }: VoteBtnProps) {
             w-60 
             rounded-md 
             p-4
+            text-gray-950
             bg-gray-100
             shadow-md
             select-none
