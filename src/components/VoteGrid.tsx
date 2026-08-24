@@ -1,8 +1,11 @@
+import { useEffect, useState } from "preact/hooks";
 import type { ThiefDetails } from "../types/voteobject"
 import { VoteBtn } from "./VoteBtn"
 
 export function VoteGrid() {
-    const vals : ThiefDetails[] = [
+    const [vals, setVals] = useState<ThiefDetails[]>([]);
+
+    const vars : ThiefDetails[] = [
     {
         "name": "Shao",
         "desc": "ChickenShopBoss",
@@ -25,8 +28,34 @@ export function VoteGrid() {
         "url": "ping.jpg"
     },
     ]
+
+    useEffect(() => {
+        fetch('./assets/chars.csv')
+            .then((res) => res.text())
+            .then((csvText) => {
+                const [headerLine, ...lines] = csvText.trim().split('\n');
+                const headers = headerLine.split(',');
+
+                const data: ThiefDetails[] = lines.map((line) => {
+                    const cells = line.split(',');
+                    const row = Object.fromEntries(headers.map((h, i) => [h, cells[i]]));
+                    const rank_vals : string[] = String(row.card).split(' ');
+
+                    return {
+                        id: Number(row.id),
+                        name: row.name,
+                        card: rank_vals[0][0] + rank_vals[1],
+                        desc: row.desc || null,
+                        url: row.url || null,
+                    };
+                });
+
+                setVals(data);
+            });
+    }, []);
+
     return (
-        <div className="flex gap-2 p-4">
+        <div className="flex flex-wrap gap-2 p-4">
             {vals.map((value) => (
                 <VoteBtn key={value.id} info={value}/>
             ))}
