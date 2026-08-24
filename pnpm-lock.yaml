@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      eslint:
+        specifier: ^10.9.0
+        version: 10.9.0
       firebase:
         specifier: ^12.18.0
         version: 12.18.0
