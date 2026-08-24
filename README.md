@@ -13,3 +13,6 @@
 -   `pnpm build` - Builds for production, emitting to `dist/`
 
 -   `pnpm preview` - Starts a server at http://localhost:4173/ to test production build locally
+
+## Credits
+'Worn Paper' - Photo by Heather Green: https://www.pexels.com/photo/white-paint-on-wall-18393282/
