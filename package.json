@@ -20,10 +20,5 @@
 	},
 	"eslintConfig": {
 		"extends": "preact"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"esbuild"
-		]
 	}
 }
