@@ -1,4 +1,15 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: vcr; /* set name */
+  src: url("/assets/vcr_osd_mono.ttf"); /* url of the font */
+}
+
+@theme {
+	--font-vcr: "vcr", monospace;
+  	--text-shadow-ctr: 0px 0px 4px rgb(0, 0, 0); 
+}
+
 /* 
 :root {
 	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
