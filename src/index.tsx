@@ -1,7 +1,7 @@
 
 import { render } from 'preact';
-import { VoteGrid } from './components/VoteGrid';
 import './style.css';
+import { Interface } from './components/Interface';
 
 export function App() {
 	return (
@@ -10,7 +10,7 @@ export function App() {
 			 			min-h-screen 
 						min-w-screen
 						bg-cover bg-center">
-			<VoteGrid/>
+			<Interface/>
 		</div>
 	);
 }

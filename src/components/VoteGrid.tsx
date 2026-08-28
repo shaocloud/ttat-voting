@@ -55,7 +55,7 @@ export function VoteGrid() {
     }, []);
 
     return (
-        <div className="flex flex-wrap gap-2 p-4">
+        <div className="grid grid-cols-2 gap-3 p-3">
             {vals.map((value) => (
                 <VoteBtn key={value.id} info={value}/>
             ))}

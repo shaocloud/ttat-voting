@@ -11,7 +11,7 @@ export function VoteBtn({ info }: VoteBtnProps) {
         const colDict = {
             "♥": "text-red-600",
             "♠": "text-blue-800",
-            "♦": "text-red-400",
+            "♦": "text-yellow-600",
             "♣": "text-green-900",
         }
         if(suit.includes("❤"))
@@ -62,7 +62,7 @@ export function VoteBtn({ info }: VoteBtnProps) {
                     absolute
                     bottom-5
                     left-5">
-                <div className="text-xl min-h-4">{info.name}</div>
+                <div className="text-3xl min-h-4">{info.name}</div>
                 <div className="text-xs min-h-4">{info.desc?.replaceAll('"','')}</div>
             </div>
         </div>
