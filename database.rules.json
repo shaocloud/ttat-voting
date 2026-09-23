@@ -1,6 +1,12 @@
 {
   "rules": {
-    ".read": "now < 1790092800000",  // 2026-9-23
-    ".write": "now < 1790092800000",  // 2026-9-23
+    "votes": {
+      ".read": true,
+      "$id": {
+        // only card ids 0-13, and only ever +1 from the current count
+        ".write": "$id.matches(/^([0-9]|1[0-3])$/)",
+        ".validate": "newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1"
+      }
+    }
   }
 }

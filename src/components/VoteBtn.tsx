@@ -5,30 +5,37 @@ interface VoteBtnProps
     info : ThiefDetails;
 }
 
+const colDict: Record<string, string> = {
+    "♥": "text-red-600",
+    "♠": "text-blue-800",
+    "♦": "text-yellow-600",
+    "♣": "text-green-900",
+}
+
+export function suitOf(card : string) {
+    let suit = card[1];
+    if(suit.includes("❤"))
+    {
+        suit = `♥`
+    }
+    return { rank: card[0], suit, color: colDict[suit] };
+}
+
 export function VoteBtn({ info }: VoteBtnProps) {
+    const { rank, suit, color } = suitOf(info.card);
+
     function cardSuit(style : string){
-        let suit = info.card[1];
-        const colDict = {
-            "♥": "text-red-600",
-            "♠": "text-blue-800",
-            "♦": "text-yellow-600",
-            "♣": "text-green-900",
-        }
-        if(suit.includes("❤"))
-        {
-            suit = `♥`
-        }
         return (
             <div className={`
-                flex flex-col 
+                flex flex-col
                 items-center leading-[0.9]
                 text-4xl
-                font-bold 
+                font-bold
                 text-black
-                ${colDict[suit]}
-                absolute 
-                ${style}`}>  
-                <span>{info.card[0]}</span>
+                ${color}
+                absolute
+                ${style}`}>
+                <span>{rank}</span>
                 <span>{suit}</span>
             </div>
         )
@@ -38,21 +45,22 @@ export function VoteBtn({ info }: VoteBtnProps) {
         <div
             className="
             flex flex-col
-            w-60 
-            h-84
-            rounded-lg
-            inset-ring-16
+            w-full
+            aspect-5/7
+            rounded-xl
+            inset-ring-12
             inset-ring-white/70
             bg-gray-100
             bg-cover
-            shadow-md
+            bg-center
+            shadow-lg
 
             relative"
             style="
             background-image: url('./assets/default.png')"
             >
-            {cardSuit("top-2 left-2")}
-            {cardSuit("bottom-2 right-2 rotate-180")}
+            {cardSuit("top-3 left-3")}
+            {cardSuit("bottom-3 right-3 rotate-180")}
             <div
                 className="
                     font-[vcr]
@@ -60,10 +68,11 @@ export function VoteBtn({ info }: VoteBtnProps) {
                     text-white
                     text-shadow-ctr
                     absolute
-                    bottom-5
-                    left-5">
+                    bottom-6
+                    left-6
+                    right-14">
                 <div className="text-3xl min-h-4">{info.name}</div>
-                <div className="text-xs min-h-4">{info.desc?.replaceAll('"','')}</div>
+                <div className="text-sm min-h-4">{info.desc}</div>
             </div>
         </div>
     )

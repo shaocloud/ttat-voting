@@ -8,7 +8,7 @@ export function App() {
 		<div 
 			 className="bg-[url('/assets/worn-paper.jpg')] 
 			 			min-h-screen 
-						min-w-screen
+						w-full
 						bg-cover bg-center">
 			<Interface/>
 		</div>

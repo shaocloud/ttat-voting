@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import {
   getDatabase,
-  onValue,
+  increment,
   ref,
   set,
 } from 'firebase/database'
@@ -19,3 +19,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const db = getDatabase(app)
+
+export function castVote(id: number) {
+  return set(ref(db, `votes/${id}`), increment(1))
+}
