@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app'
 import {
   getDatabase,
   increment,
+  onValue,
   ref,
   set,
 } from 'firebase/database'
@@ -22,4 +23,8 @@ export const db = getDatabase(app)
 
 export function castVote(id: number) {
   return set(ref(db, `votes/${id}`), increment(1))
+}
+
+export function watchVotes(cb: (counts: Record<string, number>) => void) {
+  return onValue(ref(db, 'votes'), (snap) => cb(snap.val() ?? {}))
 }

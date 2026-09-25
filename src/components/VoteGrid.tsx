@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { ThiefDetails } from "../types/voteobject"
 import { VoteBtn, suitOf } from "./VoteBtn"
+import { TiltCard, requestTiltPermission } from "./TiltCard"
 import { castVote } from "../firebase/firebase";
 
 // card width: as wide as the phone allows, but short enough that
 // the chips + vote bar still fit below it without scrolling
 const CARD_W = "min(76vw, calc((100svh - 18rem) * 5 / 7), 24rem)";
+// confirm-modal card: fills the space left above the description sheet
+const MODAL_CARD_W = "min(72vw, calc((100svh - 18rem) * 5 / 7), 22rem)";
 
 // quote-aware CSV parse; handles commas and "" inside quoted fields
 function parseCsv(text: string): string[][] {
@@ -177,7 +180,7 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
                 <button
                     type="button"
                     disabled={!active}
-                    onClick={() => setConfirming(true)}
+                    onClick={() => { requestTiltPermission(); setConfirming(true); }}
                     className="w-full max-w-md mx-auto block rounded-xl bg-stone-900 text-white font-[vcr] text-xl py-4 shadow-lg disabled:opacity-50">
                     {active ? <>Vote for {active.name} <span className="text-white">{activeSuit.rank}{activeSuit.suit}</span></> : 'Loading…'}
                 </button>
@@ -185,16 +188,19 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
 
             {confirming && active && (
                 <div
-                    className="fixed inset-0 bg-black/60 flex items-end z-10"
+                    className="fixed inset-0 bg-black/60 flex flex-col items-center justify-end z-10"
                     onClick={() => !sending && setConfirming(false)}>
-                    <div
-                        className="w-full max-w-md mx-auto bg-stone-50 text-stone-900 rounded-t-2xl p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] max-h-[80svh] overflow-y-auto"
-                        onClick={(e) => e.stopPropagation()}>
-                        <div className="font-[vcr] text-sm text-stone-500">Your vote</div>
-                        <div className="font-[vcr] text-3xl">
-                            {active.name} <span className={activeSuit.color}>{activeSuit.rank}{activeSuit.suit}</span>
+                    {/* card centred in whatever space the sheet leaves above it */}
+                    <div className="flex-1 min-h-0 w-full flex items-center justify-center py-4">
+                        <div className="animate-card-pop" onClick={(e) => e.stopPropagation()}>
+                            <TiltCard style={{ width: MODAL_CARD_W }}>
+                                <VoteBtn info={active}/>
+                            </TiltCard>
                         </div>
-                        {active.desc && <div className="font-[vcr] text-stone-600 mb-3">{active.desc}</div>}
+                    </div>
+                    <div
+                        className="w-full max-w-md mx-auto bg-stone-50 text-stone-900 rounded-t-2xl p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] max-h-[45svh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}>
                         {active.caption && (
                             <p className="text-sm text-stone-700 whitespace-pre-line mb-4">{active.caption}</p>
                         )}
