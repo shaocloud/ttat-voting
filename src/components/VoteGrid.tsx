@@ -154,8 +154,9 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
             </div>
 
             {/* jump strip: every card at a glance, tap to jump */}
-            <div className="grid grid-cols-7 gap-1.5 px-4 pt-4 max-w-md mx-auto w-full">
+            <div className="grid grid-cols-4 gap-1.5 px-4 pt-4 max-w-md mx-auto w-full">
                 {vals.map((value) => {
+                    const name = value.name || `#${value.id}`;
                     const { rank, suit, color } = suitOf(value.card);
                     const isActive = value.id === activeId;
                     return (
@@ -166,7 +167,7 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
                             onClick={() => jumpTo(value.id)}
                             className={`rounded-md py-1.5 text-base font-bold leading-none ${color}
                                 ${isActive ? 'bg-white ring-2 ring-stone-900 shadow' : 'bg-white/60'}`}>
-                            {rank}{suit}
+                            {name}
                         </button>
                     );
                 })}
