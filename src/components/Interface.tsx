@@ -2,6 +2,10 @@ import { useEffect, useState } from "preact/hooks";
 import { VoteGrid } from "./VoteGrid";
 import { watchVotes } from "../firebase/firebase";
 
+// testing aids: reset button on the results screen + a "dev build" footer.
+// flip to false before the real show.
+export const DEV_MODE = true;
+
 const VOTED_KEY = 'ttat-voted';
 
 function hasVoted() {
@@ -58,25 +62,32 @@ export function Interface() {
         setVoted(false);
     }
 
-    if (voted) {
-        return (
-            <div className="min-h-svh flex flex-col items-center justify-center text-center px-6 text-stone-900 gap-6">
-                <div>
-                    <div className="font-[vcr] text-4xl mb-3">Vote received!</div>
-                    <p className="font-[vcr] text-lg">Thanks. Eyes back on the stage 🃏</p>
-                </div>
-                <VoteTable/>
-                {import.meta.env.DEV && (
-                    <button
-                        type="button"
-                        onClick={resetVoted}
-                        className="rounded-lg border-2 border-dashed border-stone-500 text-stone-600 px-4 py-2 font-[vcr] text-sm">
-                        Reset vote (dev)
-                    </button>
-                )}
+    const screen = voted ? (
+        <div className="min-h-svh flex flex-col items-center justify-center text-center px-6 text-stone-900 gap-6">
+            <div>
+                <div className="font-[vcr] text-4xl mb-3">Vote received!</div>
+                <p className="font-[vcr] text-lg">Thanks. Eyes back on the stage 🃏</p>
             </div>
-        )
-    }
+            <VoteTable/>
+            {DEV_MODE && (
+                <button
+                    type="button"
+                    onClick={resetVoted}
+                    className="rounded-lg border-2 border-dashed border-stone-500 text-stone-600 px-4 py-2 font-[vcr] text-sm">
+                    Reset vote (dev)
+                </button>
+            )}
+        </div>
+    ) : <VoteGrid onVoted={onVoted}/>;
 
-    return <VoteGrid onVoted={onVoted}/>
+    return (
+        <div style={DEV_MODE ? { '--dev-footer': 'calc(1.5rem + env(safe-area-inset-bottom))' } : undefined}>
+            {screen}
+            {DEV_MODE && (
+                <div className="fixed bottom-0 inset-x-0 z-50 h-(--dev-footer) pb-[env(safe-area-inset-bottom)] bg-red-600 text-white font-[vcr] text-sm flex items-center justify-center pointer-events-none">
+                    dev build
+                </div>
+            )}
+        </div>
+    )
 }

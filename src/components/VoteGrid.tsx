@@ -134,7 +134,7 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
     const activeSuit = suitOf(active?.card ?? "  ");
 
     return (
-        <div className="flex flex-col min-h-svh pb-28">
+        <div className="flex flex-col min-h-svh pb-[calc(7rem+var(--dev-footer,0px))]">
             <h1 className="font-[vcr] text-center text-2xl text-stone-900 pt-5 pb-3">
                 Swipe to pick your thief
             </h1>
@@ -176,7 +176,7 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
                 })}
             </div>
 
-            <div className="fixed bottom-0 inset-x-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-stone-900/40 to-transparent">
+            <div className="fixed bottom-[var(--dev-footer,0px)] inset-x-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-stone-900/40 to-transparent">
                 <button
                     type="button"
                     disabled={!active}
@@ -188,7 +188,7 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
 
             {confirming && active && (
                 <div
-                    className="fixed inset-0 bg-black/60 flex flex-col items-center justify-end z-10"
+                    className="fixed inset-0 pb-[var(--dev-footer,0px)] bg-black/60 flex flex-col items-center justify-end z-10"
                     onClick={() => !sending && setConfirming(false)}>
                     {/* card centred in whatever space the sheet leaves above it */}
                     <div className="flex-1 min-h-0 w-full flex items-center justify-center py-4">
