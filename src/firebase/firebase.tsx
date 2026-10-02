@@ -1,5 +1,11 @@
 import { initializeApp } from 'firebase/app'
-import { getDatabase } from 'firebase/database'
+import {
+  getDatabase,
+  increment,
+  onValue,
+  ref,
+  set,
+} from 'firebase/database'
 
 const firebaseConfig = {
   apiKey: "AIzaSyDfFtFZmBExULMhS1B9okASn4rEMy1yqsw",
@@ -14,3 +20,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const db = getDatabase(app)
+export function watchVotes(cb: (counts: Record<string, number>) => void) {
+  return onValue(ref(db, 'votes'), (snap) => cb(snap.val() ?? {}))
+}

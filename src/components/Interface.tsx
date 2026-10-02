@@ -1,9 +1,51 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { VoteGrid } from "./VoteGrid";
 import { useVoteStage } from "../hooks/useVoteStage";
+import { watchVotes } from "../firebase/firebase";
+
+// testing aids: reset button on the results screen + a "dev build" footer.
+// flip to false before the real show.
+export const DEV_MODE = true;
+
+const VOTED_KEY = 'ttat-voted';
 
 function hasVoted() {
-    return new URLSearchParams(location.search).get('state') === 'voted';
+    if (new URLSearchParams(location.search).get('state') === 'voted') return true;
+    try { return localStorage.getItem(VOTED_KEY) === '1'; } catch { return false; }
+}
+
+function VoteTable() {
+    const [counts, setCounts] = useState<Record<string, number> | null>(null);
+
+    useEffect(() => watchVotes(setCounts), []);
+
+    if (!counts) return <p className="font-[vcr] text-stone-500">Loading…</p>;
+
+    // RTDB hands back an array (with holes) when keys are small integers
+    const rows = Object.entries(counts)
+        .filter(([, n]) => n != null)
+        .sort(([a], [b]) => Number(a) - Number(b));
+
+    if (rows.length === 0) return <p className="font-[vcr] text-stone-500">No votes yet</p>;
+
+    return (
+        <table className="font-[vcr] text-lg w-full max-w-xs">
+            <thead>
+                <tr className="border-b-2 border-stone-900">
+                    <th className="text-left py-1">id</th>
+                    <th className="text-right py-1">votes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows.map(([id, n]) => (
+                    <tr key={id} className="border-b border-stone-300">
+                        <td className="text-left py-1">{id}</td>
+                        <td className="text-right py-1">{n}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
 }
 
 function Message({ title, body }: { title: string, body?: string }) {
@@ -20,14 +62,50 @@ export function Interface() {
     const { stage, loading } = useVoteStage();
 
     function onVoted() {
+        try { localStorage.setItem(VOTED_KEY, '1'); } catch {}
         history.replaceState(null, '', '?state=voted');
         setVoted(true);
     }
 
+    function resetVoted() {
+        try { localStorage.removeItem(VOTED_KEY); } catch {}
+        history.replaceState(null, '', location.pathname);
+        setVoted(false);
+    }
+    
     if (voted) return <Message title="Vote received!" body="Thanks. Eyes back on the stage 🃏"/>
     if (loading) return <Message title="Loading…"/>
     if (stage === 'PREVOTE') return <Message title="Voting isn't open yet" body="Hang tight, it opens soon 🃏"/>
     if (stage === 'RESULTS') return <Message title="Voting is closed" body="Eyes on the stage 🃏"/>
+
+    const screen = voted ? (
+        <div className="min-h-svh flex flex-col items-center justify-center text-center px-6 text-stone-900 gap-6">
+            <div>
+                <div className="font-[vcr] text-4xl mb-3">Vote received!</div>
+                <p className="font-[vcr] text-lg">Thanks. Eyes back on the stage 🃏</p>
+            </div>
+            <VoteTable/>
+            {DEV_MODE && (
+                <button
+                    type="button"
+                    onClick={resetVoted}
+                    className="rounded-lg border-2 border-dashed border-stone-500 text-stone-600 px-4 py-2 font-[vcr] text-sm">
+                    Reset vote (dev)
+                </button>
+            )}
+        </div>
+    ) : <VoteGrid onVoted={onVoted}/>;
+
+    return (
+        <div style={DEV_MODE ? { '--dev-footer': 'calc(1.5rem + env(safe-area-inset-bottom))' } : undefined}>
+            {screen}
+            {DEV_MODE && (
+                <div className="fixed bottom-0 inset-x-0 z-50 h-(--dev-footer) pb-[env(safe-area-inset-bottom)] bg-red-600 text-white font-[vcr] text-sm flex items-center justify-center pointer-events-none">
+                    dev build
+                </div>
+            )}
+        </div>
+    )
 
     return <VoteGrid onVoted={onVoted}/>
 }
