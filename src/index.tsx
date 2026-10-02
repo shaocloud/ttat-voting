@@ -2,8 +2,16 @@
 import { render } from 'preact';
 import './style.css';
 import { Interface } from './components/Interface';
+import { AdminPage } from './pages/AdminPage';
+import { DisplayPage } from './pages/DisplayPage';
+import { ADMIN_PATH, DISPLAY_PATH } from './config';
 
 export function App() {
+	// hosting rewrites every path to index.html, so a pathname switch is enough
+	const path = location.pathname.replace(/^\/+|\/+$/g, '');
+	if (path === ADMIN_PATH) return <AdminPage/>;
+	if (path === DISPLAY_PATH) return <DisplayPage/>;
+
 	return (
 		<div 
 			 className="bg-[url('/assets/worn-paper.jpg')] 

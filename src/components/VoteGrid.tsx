@@ -1,35 +1,12 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { ThiefDetails } from "../types/voteobject"
 import { VoteBtn, suitOf } from "./VoteBtn"
-import { castVote } from "../firebase/firebase";
+import { castVote, VotingClosedError } from "../services/voteService";
+import { loadCharacters } from "../data/characters";
 
 // card width: as wide as the phone allows, but short enough that
 // the chips + vote bar still fit below it without scrolling
 const CARD_W = "min(76vw, calc((100svh - 18rem) * 5 / 7), 24rem)";
-
-// quote-aware CSV parse; handles commas and "" inside quoted fields
-function parseCsv(text: string): string[][] {
-    const rows: string[][] = [];
-    let row: string[] = [];
-    let cell = "";
-    let quoted = false;
-    for (let i = 0; i < text.length; i++) {
-        const c = text[i];
-        if (quoted) {
-            if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
-            else if (c === '"') quoted = false;
-            else cell += c;
-        } else if (c === '"') quoted = true;
-        else if (c === ',') { row.push(cell); cell = ""; }
-        else if (c === '\n' || c === '\r') {
-            if (c === '\r' && text[i + 1] === '\n') i++;
-            row.push(cell); rows.push(row); row = []; cell = "";
-        }
-        else cell += c;
-    }
-    if (cell || row.length) { row.push(cell); rows.push(row); }
-    return rows;
-}
 
 interface VoteGridProps {
     onVoted: () => void;
@@ -72,28 +49,10 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
     ]
 
     useEffect(() => {
-        fetch('./assets/chars.csv')
-            .then((res) => res.text())
-            .then((csvText) => {
-                const [headers, ...lines] = parseCsv(csvText.trim());
-
-                const data: ThiefDetails[] = lines.map((cells) => {
-                    const row = Object.fromEntries(headers.map((h, i) => [h, cells[i]]));
-                    const rank_vals : string[] = String(row.card).split(' ');
-
-                    return {
-                        id: Number(row.id),
-                        name: row.name,
-                        card: rank_vals[0][0] + rank_vals[1],
-                        desc: row.desc || null,
-                        caption: row.caption?.replace(/^"|"$/g, '').trim() || null,
-                        url: row.url || null,
-                    };
-                });
-
-                setVals(data);
-                setActiveId(data[0]?.id ?? null);
-            });
+        loadCharacters().then((data) => {
+            setVals(data);
+            setActiveId(data[0]?.id ?? null);
+        });
     }, []);
 
     // whichever card is mostly in view is the one being voted for
@@ -119,10 +78,12 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
         setSending(true);
         setError(null);
         try {
-            await castVote(activeId);
+            await castVote(String(activeId));
             onVoted();
-        } catch {
-            setError("Couldn't send your vote. Please try again.");
+        } catch (err) {
+            setError(err instanceof VotingClosedError
+                ? "Voting has closed."
+                : "Couldn't send your vote. Please try again.");
             setSending(false);
         }
     }

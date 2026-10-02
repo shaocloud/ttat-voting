@@ -1,10 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import {
-  getDatabase,
-  increment,
-  ref,
-  set,
-} from 'firebase/database'
+import { getDatabase } from 'firebase/database'
 
 const firebaseConfig = {
   apiKey: "AIzaSyDfFtFZmBExULMhS1B9okASn4rEMy1yqsw",
@@ -19,7 +14,3 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const db = getDatabase(app)
-
-export function castVote(id: number) {
-  return set(ref(db, `votes/${id}`), increment(1))
-}

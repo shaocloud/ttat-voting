@@ -1,15 +1,9 @@
 import type { ThiefDetails } from "../types/voteobject"
+import colDict from "../utils/misc"
 
 interface VoteBtnProps
 {
     info : ThiefDetails;
-}
-
-const colDict: Record<string, string> = {
-    "♥": "text-red-600",
-    "♠": "text-blue-800",
-    "♦": "text-yellow-600",
-    "♣": "text-green-900",
 }
 
 export function suitOf(card : string) {
@@ -59,8 +53,8 @@ export function VoteBtn({ info }: VoteBtnProps) {
             style="
             background-image: url('./assets/default.png')"
             >
-            {cardSuit("top-3 left-3")}
-            {cardSuit("bottom-3 right-3 rotate-180")}
+            {cardSuit("top-4 left-4")}
+            {cardSuit("bottom-4 right-4 rotate-180")}
             <div
                 className="
                     font-[vcr]

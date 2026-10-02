@@ -1,11 +1,73 @@
 {
   "rules": {
-    "votes": {
-      ".read": true,
-      "$id": {
-        // only card ids 0-13, and only ever +1 from the current count
-        ".write": "$id.matches(/^([0-9]|1[0-3])$/)",
-        ".validate": "newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1"
+    // Everything is public to read: the display, the admin page and the phones
+    // all listen to the stage, the live vote stream and the results.
+    ".read": true,
+
+    // There is no admin sign-in, so the control nodes below are writable by
+    // anyone. The rules only make sure the data keeps a sane shape. The admin
+    // page path is hidden, not protected.
+
+    "voteStage": {
+      // Must be one of the three stages; it can't be deleted.
+      ".write": true,
+      ".validate": "newData.isString() && newData.val().matches(/^(PREVOTE|VOTING|RESULTS)$/)"
+    },
+
+    "currentSessionId": {
+      // A session id string, or null (deleted) while in PREVOTE.
+      ".write": true,
+      ".validate": "newData.isString()"
+    },
+
+    "sessions": {
+      "$sid": {
+        "meta": {
+          // { startedAt, endedAt? } as server timestamps. endedAt also closes
+          // voting: once it exists, the vote rule below refuses new votes.
+          ".write": true,
+          ".validate": "newData.hasChild('startedAt')",
+          "startedAt": { ".validate": "newData.isNumber()" },
+          "endedAt": { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        },
+
+        "results": {
+          // The frozen tally. order/counts/frozenAt are required;
+          // tiedForFirst is only present on a tie for first. No other fields.
+          ".write": true,
+          ".validate": "newData.hasChildren(['order', 'counts', 'frozenAt'])",
+          "order": { ".validate": "newData.hasChildren()" },
+          "counts": { ".validate": "newData.hasChildren()" },
+          "tiedForFirst": { ".validate": "newData.hasChildren()" },
+          "frozenAt": { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        },
+
+        "revealIndex": {
+          // How many cards are revealed: a whole number from 0 to order.length.
+          // The cap is checked by requiring results/order/{n-1} to exist. 0 is
+          // always allowed, so it can be written in the same update as the results.
+          ".write": true,
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0 && (newData.val() == 0 || newData.parent().child('results/order/' + (newData.val() - 1)).exists())"
+        },
+
+        "votes": {
+          "$voterKey": {
+            // Create-only: a vote can't be changed or deleted once written.
+            // Accepted only while voting is open for THIS session:
+            //   - voteStage is VOTING
+            //   - $sid is the current session (no votes into old sessions)
+            //   - the session hasn't been closed by endVotingAndFreeze (no endedAt)
+            ".write": "!data.exists() && root.child('voteStage').val() == 'VOTING' && root.child('currentSessionId').val() == $sid && !root.child('sessions').child($sid).child('meta/endedAt').exists()",
+            ".validate": "newData.hasChildren(['characterId', 'ts'])",
+            // A character id from chars.csv ("0" to "13").
+            "characterId": { ".validate": "newData.isString() && newData.val().matches(/^([0-9]|1[0-3])$/)" },
+            // Must be the server timestamp, so clients can't backdate votes.
+            "ts": { ".validate": "newData.val() == now" },
+            "$other": { ".validate": false }
+          }
+        }
       }
     }
   }
