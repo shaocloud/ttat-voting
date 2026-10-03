@@ -1,5 +1,6 @@
 import type { ThiefDetails } from "../types/voteobject"
 import colDict from "../utils/misc"
+import { CardBg } from "./CardBg"
 
 interface VoteBtnProps
 {
@@ -36,23 +37,7 @@ export function VoteBtn({ info }: VoteBtnProps) {
     }
 
     return (
-        <div
-            className="
-            flex flex-col
-            w-full
-            aspect-5/7
-            rounded-xl
-            inset-ring-12
-            inset-ring-white/70
-            bg-gray-100
-            bg-cover
-            bg-center
-            shadow-lg
-
-            relative"
-            style="
-            background-image: url('./assets/default.png')"
-            >
+        <CardBg name={info.name}>
             {cardSuit("top-4 left-4")}
             {cardSuit("bottom-4 right-4 rotate-180")}
             <div
@@ -68,6 +53,6 @@ export function VoteBtn({ info }: VoteBtnProps) {
                 <div className="text-3xl min-h-4">{info.name}</div>
                 <div className="text-sm min-h-4">{info.desc}</div>
             </div>
-        </div>
+        </CardBg>
     )
 }

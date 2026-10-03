@@ -73,7 +73,7 @@ export function Interface() {
         setVoted(false);
     }
     
-    if (voted) return <Message title="Vote received!" body="Thanks. Eyes back on the stage 🃏"/>
+//    if (voted) return <Message title="Vote received!" body="Thanks. Eyes back on the stage 🃏"/>
     if (loading) return <Message title="Loading…"/>
     if (stage === 'PREVOTE') return <Message title="Voting isn't open yet" body="Hang tight, it opens soon 🃏"/>
     if (stage === 'RESULTS') return <Message title="Voting is closed" body="Eyes on the stage 🃏"/>
