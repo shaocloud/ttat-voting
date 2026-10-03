@@ -64,7 +64,8 @@ export function Interface() {
     function onVoted() {
         try { localStorage.setItem(VOTED_KEY, '1'); } catch {}
         history.replaceState(null, '', '?state=voted');
-        setVoted(true);
+        // deliberately not setVoted(true): VoteGrid stays mounted to play the
+        // "VOTED" animation. A refresh lands on the voted screen via hasVoted().
     }
 
     function resetVoted() {

@@ -21,6 +21,7 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
     const [confirming, setConfirming] = useState(false);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [voted, setVoted] = useState(false);
     const scroller = useRef<HTMLDivElement>(null);
     const slides = useRef(new Map<number, HTMLDivElement>());
 
@@ -82,6 +83,7 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
         setError(null);
         try {
             await castVote(String(activeId));
+            setVoted(true);
             onVoted();
         } catch (err) {
             setError(err instanceof VotingClosedError
@@ -149,17 +151,27 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
 
             {confirming && active && (
                 <div
-                    className="fixed inset-0 pb-[var(--dev-footer,0px)] bg-black/60 flex flex-col items-center justify-end z-10"
-                    onClick={() => !sending && setConfirming(false)}>
+                    className={`fixed inset-0 pb-[var(--dev-footer,0px)] transition-colors duration-500 flex flex-col items-center justify-end z-10
+                        ${voted ? 'bg-black/90' : 'bg-black/60'}`}
+                    onClick={() => !sending && !voted && setConfirming(false)}>
                     {/* card centred in whatever space the sheet leaves above it */}
                     <div className="flex-1 min-h-0 w-full flex items-center justify-center py-4">
                         <div className="animate-card-pop" onClick={(e) => e.stopPropagation()}>
-                            <TiltCard style={{ width: MODAL_CARD_W }}>
-                                <VoteBtn info={active}/>
-                            </TiltCard>
+                            <div className={voted ? 'animate-card-shudder' : ''}>
+                                <TiltCard style={{ width: MODAL_CARD_W }}>
+                                    <VoteBtn info={active}/>
+                                    {voted && (
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="animate-stamp-in font-[vcr] text-5xl text-red-600 border-8 border-red-600 rounded-lg px-4 py-1 bg-black/40 tracking-widest">
+                                                VOTED
+                                            </div>
+                                        </div>
+                                    )}
+                                </TiltCard>
+                            </div>
                         </div>
                     </div>
-                    <div
+                    {!voted && <div
                         className="w-full max-w-md mx-auto bg-stone-50 text-stone-900 rounded-t-2xl p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] max-h-[45svh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}>
                         {active.caption && (
@@ -182,7 +194,7 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
                                 {sending ? 'Sending…' : 'Confirm vote'}
                             </button>
                         </div>
-                    </div>
+                    </div>}
                 </div>
             )}
         </div>
