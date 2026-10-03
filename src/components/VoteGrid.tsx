@@ -13,15 +13,23 @@ const MODAL_CARD_W = "min(72vw, calc((100svh - 18rem) * 5 / 7), 22rem)";
 
 interface VoteGridProps {
     onVoted: () => void;
+    // card starts sliding out: parent should show the "vote received" screen underneath
+    onReveal: () => void;
+    // exit animation finished: parent can unmount the grid
+    onDone: () => void;
 }
 
-export function VoteGrid({ onVoted }: VoteGridProps) {
+const VOTED_HOLD_MS = 1000;
+const EXIT_MS = 600; // card-exit (450ms) + backdrop fade (500ms) overlap
+
+export function VoteGrid({ onVoted, onReveal, onDone }: VoteGridProps) {
     const [vals, setVals] = useState<ThiefDetails[]>([]);
     const [activeId, setActiveId] = useState<number | null>(null);
     const [confirming, setConfirming] = useState(false);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [voted, setVoted] = useState(false);
+    const [leaving, setLeaving] = useState(false);
     const scroller = useRef<HTMLDivElement>(null);
     const slides = useRef(new Map<number, HTMLDivElement>());
 
@@ -73,6 +81,19 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
         return () => observer.disconnect();
     }, [vals]);
 
+    // VOTED stamp holds for a second, then the card leaves and the backdrop fades
+    useEffect(() => {
+        if (!voted) return;
+        const t = setTimeout(() => { setLeaving(true); onReveal(); }, VOTED_HOLD_MS);
+        return () => clearTimeout(t);
+    }, [voted]);
+
+    useEffect(() => {
+        if (!leaving) return;
+        const t = setTimeout(onDone, EXIT_MS);
+        return () => clearTimeout(t);
+    }, [leaving]);
+
     function jumpTo(id: number) {
         slides.current.get(id)?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
@@ -97,7 +118,9 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
     const activeSuit = suitOf(active?.card ?? "  ");
 
     return (
-        <div className="flex flex-col min-h-svh pb-[calc(7rem+var(--dev-footer,0px))]">
+        <>
+        {/* hidden (not unmounted) once leaving, so the received screen beneath isn't pushed down */}
+        <div className={`flex flex-col min-h-svh pb-[calc(7rem+var(--dev-footer,0px))] ${leaving ? 'hidden' : ''}`}>
             <h1 className="font-[vcr] text-center text-2xl text-stone-900 pt-5 pb-3">
                 Swipe to pick your thief
             </h1>
@@ -148,22 +171,23 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
                     {active ? <>Vote for {active.name} <span className="text-white">{activeSuit.rank}{activeSuit.suit}</span></> : 'Loading…'}
                 </button>
             </div>
+        </div>
 
             {confirming && active && (
                 <div
                     className={`fixed inset-0 pb-[var(--dev-footer,0px)] transition-colors duration-500 flex flex-col items-center justify-end z-10
-                        ${voted ? 'bg-black/90' : 'bg-black/60'}`}
+                        ${leaving ? 'bg-black/0 pointer-events-none' : voted ? 'bg-black/90' : 'bg-black/60'}`}
                     onClick={() => !sending && !voted && setConfirming(false)}>
                     {/* card centred in whatever space the sheet leaves above it */}
                     <div className="flex-1 min-h-0 w-full flex items-center justify-center py-4">
                         <div className="animate-card-pop" onClick={(e) => e.stopPropagation()}>
-                            <div className={voted ? 'animate-card-shudder' : ''}>
+                            <div className={leaving ? 'animate-card-exit' : voted ? 'animate-card-shudder' : ''}>
                                 <TiltCard style={{ width: MODAL_CARD_W }}>
                                     <VoteBtn info={active}/>
                                     {voted && (
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                             <div className="animate-stamp-in font-[vcr] text-5xl text-red-600 border-8 border-red-600 rounded-lg px-4 py-1 bg-black/40 tracking-widest">
-                                                VOTED
+                                                GUILTY?
                                             </div>
                                         </div>
                                     )}
@@ -197,6 +221,6 @@ export function VoteGrid({ onVoted }: VoteGridProps) {
                     </div>}
                 </div>
             )}
-        </div>
+        </>
     )
 }

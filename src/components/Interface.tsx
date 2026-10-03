@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import { VoteGrid } from "./VoteGrid";
 import { useVoteStage } from "../hooks/useVoteStage";
 import { watchVotes } from "../firebase/firebase";
+import { useCharacters } from "../hooks/useCharacters";
 
 // testing aids: reset button on the results screen + a "dev build" footer.
 // flip to false before the real show.
@@ -16,6 +17,7 @@ function hasVoted() {
 
 function VoteTable() {
     const [counts, setCounts] = useState<Record<string, number> | null>(null);
+    const { byId } = useCharacters();
 
     useEffect(() => watchVotes(setCounts), []);
 
@@ -33,6 +35,7 @@ function VoteTable() {
             <thead>
                 <tr className="border-b-2 border-stone-900">
                     <th className="text-left py-1">id</th>
+                    <th className="text-left py-1">name</th>
                     <th className="text-right py-1">votes</th>
                 </tr>
             </thead>
@@ -40,6 +43,7 @@ function VoteTable() {
                 {rows.map(([id, n]) => (
                     <tr key={id} className="border-b border-stone-300">
                         <td className="text-left py-1">{id}</td>
+                        <td className="text-left py-1">{byId[id]?.name}</td>
                         <td className="text-right py-1">{n}</td>
                     </tr>
                 ))}
@@ -59,19 +63,22 @@ function Message({ title, body }: { title: string, body?: string }) {
 
 export function Interface() {
     const [voted, setVoted] = useState(hasVoted);
+    // VoteGrid outlives `voted` briefly, as an overlay playing its exit animation
+    const [showGrid, setShowGrid] = useState(() => !hasVoted());
     const { stage, loading } = useVoteStage();
 
     function onVoted() {
         try { localStorage.setItem(VOTED_KEY, '1'); } catch {}
         history.replaceState(null, '', '?state=voted');
-        // deliberately not setVoted(true): VoteGrid stays mounted to play the
-        // "VOTED" animation. A refresh lands on the voted screen via hasVoted().
+        // screen swap happens later via onReveal, once the "VOTED" animation has played.
+        // A refresh before that lands on the voted screen via hasVoted().
     }
 
     function resetVoted() {
         try { localStorage.removeItem(VOTED_KEY); } catch {}
         history.replaceState(null, '', location.pathname);
         setVoted(false);
+        setShowGrid(true);
     }
     
 //    if (voted) return <Message title="Vote received!" body="Thanks. Eyes back on the stage 🃏"/>
@@ -79,11 +86,11 @@ export function Interface() {
     if (stage === 'PREVOTE') return <Message title="Voting isn't open yet" body="Hang tight, it opens soon 🃏"/>
     if (stage === 'RESULTS') return <Message title="Voting is closed" body="Eyes on the stage 🃏"/>
 
-    const screen = voted ? (
+    const received = voted && (
         <div className="min-h-svh flex flex-col items-center justify-center text-center px-6 text-stone-900 gap-6">
             <div>
                 <div className="font-[vcr] text-4xl mb-3">Vote received!</div>
-                <p className="font-[vcr] text-lg">Thanks. Eyes back on the stage 🃏</p>
+                <p className="font-[vcr] text-lg">🃏 Thanks! 🃏</p>
             </div>
             <VoteTable/>
             {DEV_MODE && (
@@ -95,11 +102,12 @@ export function Interface() {
                 </button>
             )}
         </div>
-    ) : <VoteGrid onVoted={onVoted}/>;
+    );
 
     return (
         <div style={DEV_MODE ? { '--dev-footer': 'calc(1.5rem + env(safe-area-inset-bottom))' } : undefined}>
-            {screen}
+            {received}
+            {showGrid && <VoteGrid onVoted={onVoted} onReveal={() => setVoted(true)} onDone={() => setShowGrid(false)}/>}
             {DEV_MODE && (
                 <div className="fixed bottom-0 inset-x-0 z-50 h-(--dev-footer) pb-[env(safe-area-inset-bottom)] bg-red-600 text-white font-[vcr] text-sm flex items-center justify-center pointer-events-none">
                     dev build
@@ -107,6 +115,4 @@ export function Interface() {
             )}
         </div>
     )
-
-    return <VoteGrid onVoted={onVoted}/>
 }
