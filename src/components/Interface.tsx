@@ -83,8 +83,8 @@ export function Interface() {
     
 //    if (voted) return <Message title="Vote received!" body="Thanks. Eyes back on the stage 🃏"/>
     if (loading) return <Message title="Loading…"/>
-    if (stage === 'PREVOTE') return <Message title="Voting isn't open yet" body="Hang tight, it opens soon 🃏"/>
-    if (stage === 'RESULTS') return <Message title="Voting is closed" body="Eyes on the stage 🃏"/>
+    if (stage === 'PREVOTE') return <Message title="Voting isn't open yet" body="Please wait... 🃏"/>
+    if (stage === 'RESULTS') return <Message title="Voting is closed" body="Thanks for the vote! 🃏"/>
 
     const received = voted && (
         <div className="min-h-svh flex flex-col items-center justify-center text-center px-6 text-stone-900 gap-6">
